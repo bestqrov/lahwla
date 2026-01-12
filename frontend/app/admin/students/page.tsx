@@ -20,12 +20,14 @@ import {
     Shield,
     Calendar,
     ArrowRight,
-    Eye
+    Eye,
+    Key
 } from 'lucide-react';
 import { getStudents, deleteStudent } from '@/lib/services/students';
 import { groupsService } from '@/lib/services/groups'; // Adjust path if needed
 import AddStudentForm from '@/components/forms/AddStudentForm'; // Adjust path
 import StudentGroupModal from '@/components/StudentGroupModal'; // Adjust path
+import StudentLoginModal from '@/components/StudentLoginModal'; // New import
 
 export default function StudentsPage() {
     const router = useRouter();
@@ -42,6 +44,10 @@ export default function StudentsPage() {
     // Group Modal State (Keeping as modal for now)
     const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
     const [selectedStudentForGroup, setSelectedStudentForGroup] = useState<any>(null);
+
+    // Login Modal State
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [selectedStudentForLogin, setSelectedStudentForLogin] = useState<any>(null);
 
     useEffect(() => {
         fetchStudents();
@@ -78,6 +84,11 @@ export default function StudentsPage() {
     const handleOpenGroupModal = (student: any) => {
         setSelectedStudentForGroup(student);
         setIsGroupModalOpen(true);
+    };
+
+    const handleOpenLoginModal = (student: any) => {
+        setSelectedStudentForLogin(student);
+        setIsLoginModalOpen(true);
     };
 
     const handleCloseAddView = () => {
@@ -359,6 +370,13 @@ export default function StudentsPage() {
                                                         <ArrowRight size={18} />
                                                     </button>
                                                     <button
+                                                        onClick={() => handleOpenLoginModal(student)}
+                                                        className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-all"
+                                                        title="Informations de connexion"
+                                                    >
+                                                        <Key size={18} />
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleEdit(student)}
                                                         className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-xl transition-all"
                                                         title="Modifier"
@@ -419,6 +437,15 @@ export default function StudentsPage() {
                     isOpen={isGroupModalOpen}
                     onClose={() => setIsGroupModalOpen(false)}
                     student={selectedStudentForGroup}
+                />
+            )}
+
+            {/* Login Information Modal */}
+            {isLoginModalOpen && (
+                <StudentLoginModal
+                    isOpen={isLoginModalOpen}
+                    onClose={() => setIsLoginModalOpen(false)}
+                    student={selectedStudentForLogin}
                 />
             )}
         </div>

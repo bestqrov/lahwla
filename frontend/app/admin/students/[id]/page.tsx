@@ -15,7 +15,9 @@ import {
     Key,
     Edit,
     Save,
-    X
+    X,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import { getStudentById, updateStudent, getStudentLoginInfo, updateStudentPassword } from '@/lib/services/students';
 
@@ -30,6 +32,7 @@ export default function StudentDetailPage() {
     const [isEditing, setIsEditing] = useState(false);
     const [isEditingPassword, setIsEditingPassword] = useState(false);
     const [newPassword, setNewPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState<any>({});
 
     useEffect(() => {
@@ -253,13 +256,22 @@ export default function StudentDetailPage() {
                                                 </button>
                                             ) : (
                                                 <div className="flex items-center space-x-2">
-                                                    <input
-                                                        type="password"
-                                                        value={newPassword}
-                                                        onChange={(e) => setNewPassword(e.target.value)}
-                                                        placeholder="New password"
-                                                        className="px-3 py-1 border rounded text-sm"
-                                                    />
+                                                    <div className="relative">
+                                                        <input
+                                                            type={showPassword ? "text" : "password"}
+                                                            value={newPassword}
+                                                            onChange={(e) => setNewPassword(e.target.value)}
+                                                            placeholder="New password"
+                                                            className="px-3 py-1 border rounded text-sm pr-8"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowPassword(!showPassword)}
+                                                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                        >
+                                                            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                        </button>
+                                                    </div>
                                                     <button
                                                         onClick={handleUpdatePassword}
                                                         className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
@@ -270,6 +282,7 @@ export default function StudentDetailPage() {
                                                         onClick={() => {
                                                             setIsEditingPassword(false);
                                                             setNewPassword('');
+                                                            setShowPassword(false);
                                                         }}
                                                         className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
                                                     >

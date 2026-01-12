@@ -19,6 +19,8 @@ import { useRouter } from 'next/navigation';
 import { getStudents, getStudentAnalytics } from '@/lib/services/students';
 import { formationsService } from '@/lib/services/formations';
 import { getPaymentAnalytics } from '@/lib/services/payments';
+import { teachersService } from '@/lib/services/teachers';
+import { getUserAnalytics } from '@/lib/services/users';
 import Calendar from '@/components/Calendar';
 import SoutienInscriptionForm from '@/components/forms/SoutienInscriptionForm';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
@@ -89,15 +91,11 @@ export default function AdminDashboard() {
             // --- 2. Employees (Professors + Secretaries) ---
             let totalEmployees = 0;
             try {
-                const storedProfessors = JSON.parse(localStorage.getItem('professors') || '[]');
-                const storedSecretaries = JSON.parse(localStorage.getItem('secretaires') || '[]');
-                const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-
-                const secretaryCount = storedSecretaries.length > 0
-                    ? storedSecretaries.length
-                    : storedUsers.filter((u: any) => u.role === 'SECRETARY').length || 1;
-
-                totalEmployees = storedProfessors.length + secretaryCount;
+                const [teacherAnalytics, userAnalytics] = await Promise.all([
+                    teachersService.getAnalytics(),
+                    getUserAnalytics()
+                ]);
+                totalEmployees = teacherAnalytics.totalTeachers + userAnalytics.totalSecretaries;
             } catch (error) {
                 console.error('Failed to load employees', error);
             }

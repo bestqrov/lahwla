@@ -1,7 +1,7 @@
 import api from '../api';
 
 export interface Formation {
-    id: string;
+    id: number;
     name: string;
     duration: string;
     price: number;

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { create, getAll, getById, update, remove, getSecretariesController, updateSecretaryController } from './users.controller';
+import { create, getAll, getById, update, remove, getSecretariesController, updateSecretaryController, getAnalytics } from './users.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 
@@ -12,6 +12,8 @@ router.use(roleMiddleware('ADMIN'));
 // Secretary-specific routes
 router.get('/secretaries', getSecretariesController);
 router.put('/secretaries/:id', updateSecretaryController);
+
+router.get('/analytics', getAnalytics);
 
 router.post('/', create);
 router.get('/', getAll);

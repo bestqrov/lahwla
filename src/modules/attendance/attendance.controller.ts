@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import {
     createAttendance,
     getAttendanceByStudent,
-    markAttendanceByQR,
+    markAttendanceByQR as markAttendanceByQRService,
 } from './attendance.service';
 import { sendSuccess, sendError } from '../../utils/response';
 
@@ -71,7 +71,7 @@ export const markAttendanceByQR = async (req: Request, res: Response): Promise<v
             return;
         }
 
-        const attendance = await markAttendanceByQR({
+        const attendance = await markAttendanceByQRService({
             qrData,
             sessionId: parseInt(sessionId),
         });

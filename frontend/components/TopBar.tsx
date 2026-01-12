@@ -92,82 +92,68 @@ export default function TopBar() {
     };
 
     return (
-        <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200/50 shadow-sm">
-            <div className="px-6 py-4">
-                <div className="flex items-center justify-between">
-                    {/* Left Section - Welcome Message */}
+        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center h-16">
+                    {/* Left side - School info */}
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                                <User className="w-5 h-5 text-white" />
+                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                <Sparkles className="h-4 w-4 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-lg font-semibold text-slate-800">
-                                    Bonjour, {adminName} 👋
+                                <h1 className="text-lg font-bold text-slate-900 dark:text-white">
+                                    {profile?.name || 'ENOVAZONE'}
                                 </h1>
-                                <p className="text-sm text-slate-600">
-                                    {adminRole}
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {profile?.address || 'Plateforme Éducative'}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Center Section - Search */}
-                    <div className="hidden md:flex items-center space-x-2">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Rechercher..."
-                                className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 w-64 transition-all"
-                            />
-                        </div>
-                    </div>
+                    {/* Right side - User info and controls */}
+                    <div className="flex items-center space-x-4">
+                        {/* Prayer times */}
+                        {nextPrayer && (
+                            <div className="hidden md:flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-300">
+                                <Timer className="h-4 w-4" />
+                                <span>{nextPrayer.name}: {nextPrayer.time}</span>
+                            </div>
+                        )}
 
-                    {/* Right Section - Actions */}
-                    <div className="flex items-center space-x-3">
-                        {/* Search Mobile */}
-                        <button className="md:hidden p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
-                            <Search className="w-5 h-5" />
-                        </button>
-
-                        {/* Theme Toggle */}
+                        {/* Theme toggle */}
                         <button
                             onClick={toggleTheme}
-                            className="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                            title={`Passer en mode ${theme === 'light' ? 'sombre' : 'clair'}`}
                         >
                             {theme === 'light' ? (
-                                <Moon className="w-5 h-5" />
+                                <Moon className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                             ) : (
-                                <Sun className="w-5 h-5" />
+                                <Sun className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                             )}
                         </button>
 
                         {/* Notifications */}
-                        <button className="relative p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span>
-                            </span>
+                        <button className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors relative">
+                            <Bell className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
-                    </div>
-                </div>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 p-0.5 cursor-pointer">
-                        <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-0.5 flex items-center justify-center overflow-hidden">
-                            {profile.logo ? (
-                                <img
-                                    src={profile.logo}
-                                    alt="School Logo"
-                                    className="w-full h-full object-contain"
-                                />
-                            ) : (
-                                <img
-                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(adminName || 'User')}&background=random`}
-                                    alt={adminName}
-                                    className="w-full h-full rounded-full object-cover"
-                                />
-                            )}
+
+                        {/* User menu */}
+                        <div className="flex items-center space-x-3 pl-4 border-l border-slate-200 dark:border-slate-700">
+                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <User className="h-4 w-4 text-white" />
+                            </div>
+                            <div className="hidden md:block">
+                                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                    {adminName || 'Administrateur'}
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {adminRole}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

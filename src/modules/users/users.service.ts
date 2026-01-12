@@ -194,6 +194,12 @@ export const getSecretaries = async () => {
     return secretaries;
 };
 
+export const getSecretariesCount = async () => {
+    return await prisma.user.count({
+        where: { role: 'SECRETARY' }
+    });
+};
+
 export const updateSecretary = async (id: string, data: {
     email?: string;
     password?: string;

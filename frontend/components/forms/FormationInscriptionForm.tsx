@@ -17,11 +17,11 @@ import {
 } from 'lucide-react';
 import Button from '@/components/Button';
 import { formationsService, Formation } from '@/lib/services/formations';
-import { createStudent } from '@/lib/services/students';
+import { createStudent, getStudents } from '@/lib/services/students';
 import { createInscription } from '@/lib/services/inscriptions';
 
 // Helper component for modern inputs with icons
-const ModernInput = ({ icon: Icon, label, required, ...props }: any) => (
+const ModernInput = ({ icon: Icon, label, required, highlight, ...props }: any) => (
     <div className="space-y-1.5">
         <label className="text-sm font-semibold text-gray-700 ml-1 flex items-center gap-1">
             {label}
@@ -29,11 +29,16 @@ const ModernInput = ({ icon: Icon, label, required, ...props }: any) => (
         </label>
         <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Icon className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                <Icon className={`h-5 w-5 transition-colors ${highlight ? 'text-red-500' : 'text-gray-400 group-focus-within:text-blue-500'}`} />
             </div>
             <input
                 {...props}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all bg-gray-50/50 focus:bg-white hover:bg-white text-gray-800 placeholder-gray-400"
+                id={props.name}
+                className={`block w-full pl-10 pr-3 py-3 border rounded-xl focus:ring-4 transition-all bg-gray-50/50 focus:bg-white hover:bg-white text-gray-800 placeholder-gray-400 ${
+                    highlight
+                        ? 'border-red-300 ring-2 ring-red-100 focus:border-red-500 focus:ring-red-500/20'
+                        : 'border-gray-200 focus:ring-blue-500/10 focus:border-blue-500'
+                }`}
             />
         </div>
     </div>
@@ -48,7 +53,9 @@ interface FormationInscriptionFormProps {
 export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess, onCancel }: FormationInscriptionFormProps) {
     const router = useRouter();
     const [formations, setFormations] = useState<Formation[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+    const [duplicateStudent, setDuplicateStudent] = useState<Student | null>(null);
+    const [duplicateField, setDuplicateField] = useState<string>('');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -56,7 +63,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
         gsm: '',
         cin: '',
         address: '',
-        formation: [] as string[],
+        formation: [] as number[],
     });
 
     useEffect(() => {
@@ -87,12 +94,19 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
+
+        // Clear duplicate field highlighting when user starts editing
+        if (duplicateField && (name === 'name' || name === 'cin' || name === 'gsm')) {
+            setDuplicateField('');
+        }
+
         if (name === 'formation' && type === 'checkbox') {
             setFormData(prev => {
-                const current = prev.formation as string[];
+                const current = prev.formation as number[];
+                const numValue = parseInt(value);
                 const newSelection = checked
-                    ? [...current, value]
-                    : current.filter(id => id !== value);
+                    ? [...current, numValue]
+                    : current.filter(id => id !== numValue);
                 return { ...prev, formation: newSelection };
             });
         } else {
@@ -102,41 +116,101 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validation
+        if (formData.formation.length === 0) {
+            alert('Veuillez sélectionner au moins une formation');
+            return;
+        }
+
+        if (!formData.name || !formData.cin || !formData.address || !formData.gsm) {
+            alert('Veuillez remplir tous les champs obligatoires (Nom, CIN, Adresse, GSM)');
+            return;
+        }
+
         try {
             setLoading(true);
 
-            // Create an inscription for each selected formation
-            await Promise.all(formData.formation.map(async (formationId) => {
-                const formation = formations.find(f => f.id === formationId);
-                if (!formation) return;
+            // Check for duplicate student
+            const allStudents = await getStudents();
+            let existingStudent = null;
+            let duplicateFieldName = '';
 
-                // 1. Create Student
-                const studentData = await createStudent({
-                    name: formData.name.split(' ')[0],
-                    surname: formData.name.split(' ').slice(1).join(' ') || '.',
-                    email: formData.email,
-                    phone: formData.gsm,
-                    cin: formData.cin,
-                    address: formData.address,
-                } as any);
-
-                // 2. Create Inscription
-                await createInscription({
-                    studentId: studentData.id,
-                    type: 'FORMATION',
-                    formationId: formation.id,
-                    category: formation.name,
-                    amount: formation.price,
-                    note: `Inscription Formation: ${formation.name}`,
-                    status: 'ACTIVE'
-                } as any);
-            }));
-
-            if (onSuccess) {
-                onSuccess();
-            } else if (onSuccessRedirect) {
-                router.push(onSuccessRedirect as string);
+            // Check by CIN first (most reliable)
+            if (formData.cin) {
+                existingStudent = allStudents.find(student => student.cin === formData.cin);
+                if (existingStudent) {
+                    duplicateFieldName = 'cin';
+                }
             }
+
+            // If no CIN match, check by name and phone
+            if (!existingStudent && formData.name && formData.gsm) {
+                const fullName = `${formData.name.split(' ')[0]} ${formData.name.split(' ').slice(1).join(' ') || '.'}`.trim();
+                existingStudent = allStudents.find(student => 
+                    student.name === formData.name.split(' ')[0] && 
+                    student.surname === (formData.name.split(' ').slice(1).join(' ') || '.') &&
+                    student.phone === formData.gsm
+                );
+                if (existingStudent) {
+                    duplicateFieldName = 'name';
+                }
+            }
+
+            if (existingStudent) {
+                setDuplicateStudent(existingStudent);
+                setDuplicateField(duplicateFieldName);
+                setShowDuplicateDialog(true);
+                setLoading(false);
+                return;
+            }
+
+            // No duplicate found, proceed with creation
+            await createStudentAndInscriptions();
+    const createStudentAndInscriptions = async (existingStudentId?: number) => {
+        let studentId = existingStudentId;
+
+        if (!studentId) {
+            // Create new student
+            const studentData = await createStudent({
+                name: formData.name.split(' ')[0],
+                surname: formData.name.split(' ').slice(1).join(' ') || '.',
+                email: formData.email || undefined,
+                phone: formData.gsm,
+                cin: formData.cin,
+                address: formData.address,
+            } as any);
+            studentId = studentData.id;
+        }
+
+        // Create inscriptions for each selected formation
+        await Promise.all(formData.formation.map(async (formationId) => {
+            const formation = formations.find(f => f.id === formationId);
+            if (!formation) return;
+
+            await createInscription({
+                studentId: studentId,
+                type: 'FORMATION',
+                category: formation.name,
+                amount: formation.price,
+                note: `Inscription Formation: ${formation.name}`
+            } as any);
+        }));
+
+        alert('Inscription créée avec succès!');
+        
+        if (onSuccess) {
+            onSuccess();
+        } else if (onSuccessRedirect) {
+            router.push(onSuccessRedirect as string);
+        }
+    };
+
+    const handleDuplicateConfirm = async () => {
+        setShowDuplicateDialog(false);
+        try {
+            setLoading(true);
+            await createStudentAndInscriptions(duplicateStudent!.id);
         } catch (error: any) {
             console.error('Submission failed:', error);
             const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Une erreur est survenue';
@@ -146,13 +220,69 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
         }
     };
 
-    const total = formData.formation.reduce((sum, id) => {
-        const opt = formations.find(o => o.id === id);
-        return sum + (opt?.price || 0);
-    }, 0);
+    const handleDuplicateCancel = () => {
+        setShowDuplicateDialog(false);
+        // Determine which field caused the duplicate and highlight it
+        if (duplicateStudent) {
+            if (duplicateStudent.cin === formData.cin) {
+                setDuplicateField('cin');
+            } else if (duplicateStudent.phone === formData.phone) {
+                setDuplicateField('phone');
+            } else if (duplicateStudent.name === formData.name && duplicateStudent.surname === formData.surname) {
+                setDuplicateField('name');
+            }
+        }
+        setDuplicateStudent(null);
+        // Focus on the duplicate field after a short delay to allow state update
+        setTimeout(() => {
+            const fieldElement = document.getElementById(duplicateField);
+            if (fieldElement) {
+                fieldElement.focus();
+                fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    };
 
     return (
         <div className="max-w-6xl mx-auto p-6">
+            {/* Duplicate Confirmation Dialog */}
+            {showDuplicateDialog && duplicateStudent && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+                        <div className="text-center">
+                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
+                                <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Étudiant déjà existant</h3>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Un étudiant avec les mêmes informations existe déjà:<br/>
+                                <strong>{duplicateStudent.name} {duplicateStudent.surname}</strong><br/>
+                                {duplicateStudent.cin && `CIN: ${duplicateStudent.cin}`}
+                            </p>
+                            <p className="text-sm text-gray-500 mb-6">
+                                Voulez-vous créer une nouvelle inscription pour cet étudiant ?
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={handleDuplicateCancel}
+                                    className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    onClick={handleDuplicateConfirm}
+                                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                                >
+                                    Continuer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                 {/* Main Form Section */}
@@ -188,6 +318,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                         onChange={handleChange}
                                         required
                                         placeholder="Ex: Mohammed Alami"
+                                        highlight={duplicateField === 'name'}
                                     />
                                     <ModernInput
                                         icon={CreditCard}
@@ -197,18 +328,18 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                         onChange={handleChange}
                                         required
                                         placeholder="Ex: AB123456"
+                                        highlight={duplicateField === 'cin'}
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <ModernInput
                                         icon={Mail}
-                                        label="Email"
+                                        label="Email (optionnel)"
                                         name="email"
                                         type="email"
                                         value={formData.email}
                                         onChange={handleChange}
-                                        required
                                         placeholder="exemple@email.com"
                                     />
                                     <ModernInput
@@ -240,6 +371,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                         onChange={handleChange}
                                         required
                                         placeholder="06..."
+                                        highlight={duplicateField === 'phone'}
                                     />
                                 </div>
                             </div>
@@ -285,6 +417,9 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                                             {opt.name}
                                                         </span>
                                                         <div className="text-sm text-gray-500">{opt.duration}</div>
+                                                        <div className={`text-lg font-bold mt-1 ${isSelected ? 'text-blue-600' : 'text-green-600'}`}>
+                                                            {opt.price} DH
+                                                        </div>
                                                     </div>
                                                     <div className={`p-2 rounded-xl ${style.bg}`}>
                                                         <BookOpen size={20} className={style.color} />
@@ -309,10 +444,11 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                 )}
                                 <Button
                                     type="submit"
-                                    className={`bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98] ${onCancel ? 'flex-[2]' : 'w-full'}`}
+                                    disabled={loading}
+                                    className={`bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98] ${onCancel ? 'flex-[2]' : 'w-full'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     <Save className="mr-2" size={20} />
-                                    Confirmer l'Inscription
+                                    {loading ? 'Inscription en cours...' : 'Confirmer l\'Inscription'}
                                 </Button>
                             </div>
                         </form>

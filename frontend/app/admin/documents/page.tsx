@@ -52,11 +52,9 @@ export default function DocumentsPage() {
     const filteredStudents = students.filter(student => {
         const matchesSearch = `${student.name} ${student.surname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
             student.cin?.toLowerCase().includes(searchTerm.toLowerCase());
-        // Filter students who have both SOUTIEN and FORMATION inscriptions
-        const hasSoutien = student.inscriptions?.some(ins => ins.type === 'SOUTIEN');
-        const hasFormation = student.inscriptions?.some(ins => ins.type === 'FORMATION');
-        const matchesType = hasSoutien && hasFormation;
-        return matchesSearch && matchesType;
+        // Show all students with inscriptions
+        const hasInscriptions = student.inscriptions && student.inscriptions.length > 0;
+        return matchesSearch && hasInscriptions;
     });
 
     const handlePrint = () => {
@@ -162,7 +160,7 @@ export default function DocumentsPage() {
                     {/* Students List */}
                     <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
                         <h2 className="text-xl font-bold text-gray-800 mb-4">
-                            Élèves inscrits en Soutien Scolaire et Formation Professionnelle
+                            Tous les élèves inscrits
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filteredStudents.map((student) => (
@@ -440,7 +438,7 @@ export default function DocumentsPage() {
                                         <div>
                                             <span className="font-bold">Nom et Prénom:</span> {selectedStudent.name} {selectedStudent.surname}
                                         </div>
-                                        {activeFilter === 'SOUTIEN' && (
+                                        {selectedStudent.inscriptions?.some(ins => ins.type === 'SOUTIEN') && (
                                             <div>
                                                 <span className="font-bold">Niveau:</span> {selectedStudent.schoolLevel}
                                             </div>

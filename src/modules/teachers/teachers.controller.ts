@@ -37,3 +37,12 @@ export const deleteTeacher = async (req: Request, res: Response) => {
         sendError(res, error.message, 'Failed to delete teacher', 400);
     }
 };
+
+export const getAnalytics = async (req: Request, res: Response) => {
+    try {
+        const totalTeachers = await teachersService.getTeacherCount();
+        sendSuccess(res, { totalTeachers }, 'Teacher analytics retrieved successfully');
+    } catch (error: any) {
+        sendError(res, error.message, 'Failed to retrieve teacher analytics');
+    }
+};

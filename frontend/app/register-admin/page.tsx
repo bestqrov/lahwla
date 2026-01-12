@@ -3,12 +3,15 @@ import React, { useState, useEffect } from 'react';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterAdmin() {
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
@@ -37,8 +40,44 @@ export default function RegisterAdmin() {
                 <form onSubmit={handleSubmit} className="space-y-3">
                     <Input label="Name" type="text" value={name} onChange={(e) => setName(e.target.value)} required />
                     <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                    <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                    <Input label="Confirm password" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Password</label>
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                className="w-full p-2 border rounded pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Confirm password</label>
+                        <div className="relative">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                value={confirm}
+                                onChange={(e) => setConfirm(e.target.value)}
+                                required
+                                className="w-full p-2 border rounded pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        </div>
+                    </div>
                     <div className="flex gap-2">
                         <Button className="flex-1 bg-blue-600 text-white">Create</Button>
                         <Button type="button" onClick={() => { setEmail(''); setPassword(''); setConfirm(''); setName(''); }} className="flex-1 bg-gray-200">Annuler</Button>

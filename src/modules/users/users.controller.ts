@@ -7,6 +7,7 @@ import {
     deleteUser,
     getSecretaries,
     updateSecretary,
+    getSecretariesCount,
 } from './users.service';
 import { sendSuccess, sendError } from '../../utils/response';
 
@@ -109,6 +110,15 @@ export const updateSecretaryController = async (req: Request, res: Response): Pr
         sendSuccess(res, secretary, 'Secretary updated successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to update secretary', 400);
+    }
+};
+
+export const getAnalytics = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const totalSecretaries = await getSecretariesCount();
+        sendSuccess(res, { totalSecretaries }, 'User analytics retrieved successfully', 200);
+    } catch (error: any) {
+        sendError(res, error.message, 'Failed to retrieve user analytics', 500);
     }
 };
 

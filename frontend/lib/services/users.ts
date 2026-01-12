@@ -13,6 +13,11 @@ export const getSecretaries = async (): Promise<User[]> => {
     return response.data.data;
 };
 
+export const getUserAnalytics = async () => {
+    const response = await api.get<ApiResponse<{ totalSecretaries: number }>>('/users/analytics');
+    return response.data.data;
+};
+
 export const createUser = async (data: any): Promise<User> => {
     const response = await api.post<ApiResponse<User>>('/users', data);
     return response.data.data;

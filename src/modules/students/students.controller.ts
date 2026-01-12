@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../../middlewares/auth.middleware';
 import {
     createStudent,
     getAllStudents,
@@ -192,7 +193,7 @@ export const getLoginInfo = async (req: Request, res: Response): Promise<void> =
     }
 };
 
-export const getProfile = async (req: Request, res: Response): Promise<void> => {
+export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         // Get student ID from authenticated user
         const studentId = req.user?.id;

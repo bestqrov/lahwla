@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Sidebar } from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
@@ -30,6 +30,7 @@ interface StudentData {
 export default function StudentCardPage() {
     const { user } = useAuthStore();
     const pathname = usePathname();
+    const router = useRouter();
     const [studentData, setStudentData] = useState<StudentData | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -51,9 +52,17 @@ export default function StudentCardPage() {
 
     useEffect(() => {
         if (user?.id) {
-            fetchStudentData();
+            if (user.role === 'STUDENT') {
+                fetchStudentData();
+            } else {
+                // User is logged in but not a student, redirect to appropriate page
+                router.push('/admin');
+            }
+        } else if (user === null) {
+            // User is not logged in, redirect to login
+            router.push('/login');
         }
-    }, [user?.id, fetchStudentData]);
+    }, [user, fetchStudentData, router]);
 
     const handlePrint = () => {
         window.print();
@@ -64,7 +73,15 @@ export default function StudentCardPage() {
         window.print();
     };
 
-    if (loading) return <div className="flex items-center justify-center h-screen">Chargement...</div>;
+    if (loading || user === undefined) {
+        return (
+            <div className="flex h-screen bg-gray-100">
+                <div className="flex items-center justify-center w-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+            </div>
+        );
+    }
 
     if (!studentData) {
         return (
@@ -74,7 +91,17 @@ export default function StudentCardPage() {
                     <TopBar />
                     <main className="flex-1 p-6">
                         <div className="text-center">
-                            <p>Impossible de charger les données de l'étudiant.</p>
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
+                                <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                                <h3 className="text-lg font-semibold text-red-800 mb-2">Erreur de chargement</h3>
+                                <p className="text-red-600">Impossible de charger les données de l'étudiant. Veuillez réessayer plus tard.</p>
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                >
+                                    Réessayer
+                                </button>
+                            </div>
                         </div>
                     </main>
                 </div>

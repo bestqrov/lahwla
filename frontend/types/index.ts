@@ -12,7 +12,7 @@ export interface User {
 
 // Student types
 export interface Student {
-    id: string;
+    id: number;
     name: string;
     surname: string;
     phone?: string;
@@ -50,8 +50,8 @@ export interface Parent {
 export type InscriptionType = 'SOUTIEN' | 'FORMATION';
 
 export interface Inscription {
-    id: string;
-    studentId: string;
+    id: number;
+    studentId: number;
     student?: Student;
     type: InscriptionType;
     category: string;
@@ -148,7 +148,7 @@ export interface StudentFormData {
 }
 
 export interface InscriptionFormData {
-    studentId: string;
+    studentId: number;
     type: InscriptionType;
     category: string;
     amount: number;

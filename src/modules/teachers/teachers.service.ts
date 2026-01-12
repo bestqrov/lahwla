@@ -47,6 +47,10 @@ export const deleteTeacher = async (id: string) => {
     });
 };
 
+export const getTeacherCount = async () => {
+    return await prisma.teacher.count();
+};
+
 export const calculateMonthlyTeacherExpenses = async () => {
     // Get all teachers with their groups
     const teachers = await prisma.teacher.findMany({

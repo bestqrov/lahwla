@@ -18,6 +18,10 @@ export const teachersService = {
     },
     delete: async (id: string): Promise<void> => {
         await api.delete(`/teachers/${id}`);
+    },
+    getAnalytics: async () => {
+        const response = await api.get<ApiResponse<{ totalTeachers: number }>>('/teachers/analytics');
+        return response.data.data;
     }
 };
 

@@ -227,22 +227,19 @@ export const getStudentAnalytics = async () => {
     }
     console.log(`DEBUG ANALYTICS: Total Recurring Revenue: ${monthlyRevenue}`);
 
-    // 2. Add One-time Inscription Fees from THIS MONTH only
-    // (New students joining this month usually pay an inscription fee)
-    const monthlyInscriptions = await prisma.inscription.findMany({
-        where: {
-            type: 'SOUTIEN',
-            createdAt: {
-                gte: startOfMonth,
-                lte: endOfMonth
-            }
-        }
+    // 2. Add ALL Inscription Fees for SOUTIEN
+    // Inscription fees contribute to the total expected revenue
+    const allSoutienInscriptions = await prisma.inscription.findMany({
+        where: { type: 'SOUTIEN' }
     });
 
-    for (const inscription of monthlyInscriptions) {
-        monthlyRevenue += inscription.amount;
+    let totalInscriptionFees = 0;
+    for (const inscription of allSoutienInscriptions) {
+        totalInscriptionFees += inscription.amount || 0;
     }
-    console.log(`DEBUG ANALYTICS: Total Revenue (Recurring + New Inscriptions): ${monthlyRevenue}`);
+    monthlyRevenue += totalInscriptionFees;
+    console.log(`DEBUG ANALYTICS: Total SOUTIEN Inscription Fees: ${totalInscriptionFees}`);
+    console.log(`DEBUG ANALYTICS: Total Revenue (Recurring + All Inscriptions): ${monthlyRevenue}`);
 
     // Get recent inscriptions
     const recentInscriptions = await prisma.inscription.findMany({
@@ -500,4 +497,27 @@ export const getStudentProfile = async (studentId: string) => {
     }
 
     return student;
+};
+
+export const updateStudentPassword = async (id: string, newPassword: string) => {
+    // Hash the new password
+    const bcrypt = require('bcrypt');
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the student's password directly
+    const updatedStudent = await prisma.student.update({
+        where: { id: parseInt(id) },
+        data: { password: hashedPassword },
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            surname: true,
+        },
+    });
+
+    return {
+        student: updatedStudent,
+        message: 'Password updated successfully',
+    };
 };

@@ -5,11 +5,12 @@ import Button from '../../components/Button';
 import useAuthStore from '../../store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
-import { GraduationCap, X } from 'lucide-react';
+import { GraduationCap, X, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const login = useAuthStore(state => state.login);
@@ -113,15 +114,24 @@ export default function LoginPage() {
                                 placeholder="Adresse e-mail"
                             />
 
-                            <Input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                autoComplete="new-password"
-                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
-                                placeholder="Mot de passe"
-                            />
+                            <div className="relative">
+                                <Input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    autoComplete="new-password"
+                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm pr-12"
+                                    placeholder="Mot de passe"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
 
                             <div className="pt-4 lg:pt-6">
                                 <Button className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-xl shadow-[0_20px_45px_-10px_rgba(79,70,229,0.4)] transform active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-4 group">
@@ -149,6 +159,50 @@ export default function LoginPage() {
                                 >
                                     Connexion Rapide Professeur
                                     <GraduationCap className="w-5 h-5" />
+                                </Button>
+                            </div>
+
+                            {/* Quick Login as Student */}
+                            <div className="pt-2">
+                                <Button
+                                    type="button"
+                                    onClick={async () => {
+                                        setError(null);
+                                        const res = await login('mohamed.benali@example.com', 'password123');
+                                        if (!res.success) return setError(res.message || 'Login failed');
+
+                                        const user = useAuthStore.getState().user;
+                                        if (user?.role === 'STUDENT') router.push('/student');
+                                        else setError('Not a student account');
+                                    }}
+                                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-bold text-lg shadow-[0_20px_45px_-10px_rgba(59,130,246,0.4)] transform active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-3"
+                                >
+                                    Connexion Rapide Étudiant
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                </Button>
+                            </div>
+
+                            {/* Quick Login as Parent */}
+                            <div className="pt-2">
+                                <Button
+                                    type="button"
+                                    onClick={async () => {
+                                        setError(null);
+                                        const res = await login('ahmed.benali@example.com', 'password123');
+                                        if (!res.success) return setError(res.message || 'Login failed');
+
+                                        const user = useAuthStore.getState().user;
+                                        if (user?.role === 'PARENT') router.push('/parent');
+                                        else setError('Not a parent account');
+                                    }}
+                                    className="w-full py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-[2rem] font-bold text-lg shadow-[0_20px_45px_-10px_rgba(147,51,234,0.4)] transform active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-3"
+                                >
+                                    Connexion Rapide Parent
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
                                 </Button>
                             </div>
                         </form>

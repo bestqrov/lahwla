@@ -19,6 +19,7 @@ import Button from '@/components/Button';
 import { formationsService, Formation } from '@/lib/services/formations';
 import { createStudent, getStudents } from '@/lib/services/students';
 import { createInscription } from '@/lib/services/inscriptions';
+import { Student } from '@/types';
 
 // Helper component for modern inputs with icons
 const ModernInput = ({ icon: Icon, label, required, highlight, ...props }: any) => (
@@ -53,6 +54,7 @@ interface FormationInscriptionFormProps {
 export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess, onCancel }: FormationInscriptionFormProps) {
     const router = useRouter();
     const [formations, setFormations] = useState<Formation[]>([]);
+    const [loading, setLoading] = useState(true);
     const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
     const [duplicateStudent, setDuplicateStudent] = useState<Student | null>(null);
     const [duplicateField, setDuplicateField] = useState<string>('');
@@ -167,7 +169,13 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
 
             // No duplicate found, proceed with creation
             await createStudentAndInscriptions();
-    const createStudentAndInscriptions = async (existingStudentId?: number) => {
+        } catch (error: any) {
+            console.error('Submission failed:', error);
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Une erreur est survenue';
+            alert(`Erreur: ${errorMessage}`);
+        } finally {
+            setLoading(false);
+        }
         let studentId = existingStudentId;
 
         if (!studentId) {

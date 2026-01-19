@@ -40,36 +40,13 @@ app.get('/health', (_req, res) => {
 // ================= ROOT REDIRECT =================
 // Serve frontend index at root to avoid redirect loops when backend and frontend share a domain
 app.get('/', (req, res) => {
-    const frontendUrl = env.FRONTEND_URL;
     const indexPath = path.join(__dirname, '..', 'frontend', 'dist', 'index.html');
 
-    // If we have a built frontend index, serve it.
+    // Serve built frontend index when present; otherwise return API status.
     if (fs.existsSync(indexPath)) {
         return res.sendFile(indexPath);
     }
 
-    // Determine hostnames for comparison (strip protocol/port differences)
-    let frontendHost: string | null = null;
-    try {
-        if (frontendUrl) frontendHost = new URL(frontendUrl).host; // host includes port if present
-    }
-    catch (e) {
-        frontendHost = frontendUrl || null;
-    }
-
-    const requestHost = (req.get('host') || '').toLowerCase();
-    const forwardedHost = (req.get('x-forwarded-host') || '').toLowerCase();
-
-    // Debug logging to help diagnose redirect loops when deployed
-    console.log('[root] requestHost=', requestHost, 'forwardedHost=', forwardedHost, 'frontendHost=', frontendHost);
-
-    // If FRONTEND_URL is set and its host differs from the incoming request host, redirect.
-    if (frontendHost && frontendHost.toLowerCase() !== requestHost && frontendHost.toLowerCase() !== forwardedHost) {
-        console.log('[root] redirecting to FRONTEND_URL:', frontendUrl);
-        return res.redirect(frontendUrl);
-    }
-
-    // Otherwise respond with a simple API message to avoid blank pages/redirect loops.
     return res.status(200).send('API is running');
 });
 

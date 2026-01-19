@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { env } from './config/env';
 
@@ -72,11 +73,12 @@ app.get('*', function (req, res) {
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ error: 'API endpoint not found' });
     }
-    res.sendFile(path.join(frontendPath, 'index.html'));
-    return;
+    return res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // ================= ERROR HANDLING =================
 app.use(errorMiddleware);
+
+// Note: root handler already defined above to serve index or redirect appropriately.
 
 export default app;

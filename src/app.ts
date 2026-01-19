@@ -23,6 +23,9 @@ import teacherRoutes from './modules/teacher/teacher.routes';
 
 const app: Application = express();
 
+// Trust proxy when behind a reverse proxy (e.g., Coolify) so secure cookies and redirects work
+app.set('trust proxy', true);
+
 // ================= MIDDLEWARE =================
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -34,8 +37,9 @@ app.get('/health', (_req, res) => {
 });
 
 // ================= ROOT REDIRECT =================
-app.get('/', (_req, res) => {
-    res.redirect(env.FRONTEND_URL);
+// Serve frontend index at root to avoid redirect loops when backend and frontend share a domain
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html'));
 });
 
 // ================= API ROUTES =================

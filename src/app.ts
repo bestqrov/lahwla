@@ -37,17 +37,18 @@ app.get('/health', (_req, res) => {
     res.json({ success: true, message: 'Server is running' });
 });
 
-// ================= ROOT REDIRECT =================
-// Serve frontend index at root to avoid redirect loops when backend and frontend share a domain
-app.get('/', (req, res) => {
-    const indexPath = path.join(__dirname, '..', 'frontend', 'dist', 'index.html');
-
-    // Serve built frontend index when present; otherwise return API status.
-    if (fs.existsSync(indexPath)) {
-        return res.sendFile(indexPath);
-    }
-
-    return res.status(200).send('API is running');
+// ================= ROOT ROUTE =================
+// Return API status for root requests - let reverse proxy handle frontend routing
+app.get('/', (_req, res) => {
+    res.json({
+        success: true,
+        message: 'ArwaEduc API Server',
+        version: '1.0.0',
+        endpoints: {
+            health: '/health',
+            api: '/api/*'
+        }
+    });
 });
 
 // ================= API ROUTES =================
@@ -70,22 +71,7 @@ apiRouter.use('/teacher', teacherRoutes);
 
 app.use('/api', apiRouter);
 
-// ================= FRONTEND STATIC =================
-const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
-app.use(express.static(frontendPath));
-
-// Any route not API → serve frontend
-app.get('*', function (req, res) {
-    // Skip API routes
-    if (req.path.startsWith('/api')) {
-        return res.status(404).json({ error: 'API endpoint not found' });
-    }
-    return res.sendFile(path.join(frontendPath, 'index.html'));
-});
-
 // ================= ERROR HANDLING =================
 app.use(errorMiddleware);
-
-// Note: root handler already defined above to serve index or redirect appropriately.
 
 export default app;

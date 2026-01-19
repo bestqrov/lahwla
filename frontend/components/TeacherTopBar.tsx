@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Search, User, Calendar, Clock, Sun, Moon, Home, ArrowLeft } from 'lucide-react';
+import { Bell, Search, User, Calendar, Clock, Home, ArrowLeft } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import useAuthStore from '@/store/useAuthStore';
 
 export default function TeacherTopBar() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const user = useAuthStore(state => state.user);
   const router = useRouter();
   const pathname = usePathname();
@@ -20,21 +19,8 @@ export default function TeacherTopBar() {
       setCurrentTime(new Date());
     }, 1000);
 
-    // Load theme
-    const savedTheme = localStorage.getItem('app-theme') as 'light' | 'dark';
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-
     return () => clearInterval(timer);
   }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('app-theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
 
   const formatTime = (date: Date | null) => {
     if (!date) return '--:--:--';
@@ -98,18 +84,6 @@ export default function TeacherTopBar() {
             {/* Search */}
             <button className="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
               <Search className="w-5 h-5" />
-            </button>
-
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-            >
-              {theme === 'light' ? (
-                <Moon className="w-5 h-5" />
-              ) : (
-                <Sun className="w-5 h-5" />
-              )}
             </button>
 
             {/* Notifications */}

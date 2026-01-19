@@ -20,7 +20,7 @@ const startServer = async () => {
             console.log(`📍 Environment: ${env.NODE_ENV}`);
             console.log(`🔗 Health check: http://localhost:${env.PORT}/health`);
             console.log('\n📚 Available routes:');
-            console.log(`   GET    /      (Redirect to: ${env.FRONTEND_URL})`);
+            console.log(`   GET    /      (Serves frontend index or API status)`);
             console.log('   POST   /auth/login');
             console.log('   POST   /users (ADMIN)');
             console.log('   GET    /users (ADMIN)');

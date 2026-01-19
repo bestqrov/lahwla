@@ -11,9 +11,6 @@ import {
     Upload,
     CheckCircle,
     AlertCircle,
-    Sun,
-    Moon,
-    Monitor,
     Users,
     Eye,
     EyeOff
@@ -37,7 +34,7 @@ interface User {
 }
 
 export default function SettingsPage() {
-    const [activeTab, setActiveTab] = useState<'profile' | 'theme' | 'backup' | 'users'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'backup' | 'users'>('profile');
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
@@ -52,8 +49,6 @@ export default function SettingsPage() {
         logo: '',
     });
 
-    // Theme State
-    const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('light');
     const [accentColor, setAccentColor] = useState('#3B82F6');
 
     // Users State
@@ -162,24 +157,6 @@ export default function SettingsPage() {
         }
     };
 
-    const handleSaveTheme = async () => {
-        setSaving(true);
-        setError('');
-        setSuccess('');
-
-        try {
-            // TODO: Implement theme saving to localStorage or API
-            localStorage.setItem('app-theme', theme);
-            localStorage.setItem('accent-color', accentColor);
-            await new Promise(resolve => setTimeout(resolve, 500));
-            setSuccess('Thème enregistré avec succès');
-        } catch (err: any) {
-            setError('Échec de l\'enregistrement du thème');
-        } finally {
-            setSaving(false);
-        }
-    };
-
     const handleBackup = async () => {
         setSaving(true);
         setError('');
@@ -259,7 +236,6 @@ export default function SettingsPage() {
     const tabs = [
         { id: 'profile' as const, label: 'Profil École', icon: School },
         { id: 'users' as const, label: 'Utilisateurs', icon: Users },
-        { id: 'theme' as const, label: 'Thème', icon: Palette },
         { id: 'backup' as const, label: 'Sauvegarde', icon: Database },
     ];
 
@@ -751,77 +727,6 @@ export default function SettingsPage() {
                                 ) : (
                                     <p className="text-gray-500 italic">Aucun compte secrétaire trouvé.</p>
                                 )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Theme Tab */}
-                    {activeTab === 'theme' && (
-                        <div className="space-y-6">
-                            <div>
-                                <h2 className="text-2xl font-bold text-gray-800 mb-2">Apparence de l'Application</h2>
-                                <p className="text-gray-600">Personnaliser le thème et les couleurs</p>
-                            </div>
-
-                            {/* Theme Mode */}
-                            <div>
-                                <label className="text-sm font-semibold text-gray-700 mb-3 block">
-                                    Mode d'affichage
-                                </label>
-                                <div className="grid grid-cols-3 gap-4">
-                                    {[
-                                        { value: 'light', label: 'Clair', icon: Sun },
-                                        { value: 'dark', label: 'Sombre', icon: Moon },
-                                        { value: 'auto', label: 'Auto', icon: Monitor },
-                                    ].map((option) => {
-                                        const Icon = option.icon;
-                                        return (
-                                            <button
-                                                key={option.value}
-                                                onClick={() => setTheme(option.value as any)}
-                                                className={`p-6 rounded-xl border-2 transition-all ${theme === option.value
-                                                    ? 'border-blue-600 bg-blue-50'
-                                                    : 'border-gray-200 hover:border-gray-300'
-                                                    }`}
-                                            >
-                                                <Icon className={`mx-auto mb-2 ${theme === option.value ? 'text-blue-600' : 'text-gray-400'}`} size={32} />
-                                                <p className={`font-semibold ${theme === option.value ? 'text-blue-600' : 'text-gray-700'}`}>
-                                                    {option.label}
-                                                </p>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Accent Color */}
-                            <div>
-                                <label className="text-sm font-semibold text-gray-700 mb-3 block">
-                                    Couleur d'accent
-                                </label>
-                                <div className="flex items-center gap-4">
-                                    <input
-                                        type="color"
-                                        value={accentColor}
-                                        onChange={(e) => setAccentColor(e.target.value)}
-                                        className="w-20 h-20 rounded-xl border-2 border-gray-200 cursor-pointer"
-                                    />
-                                    <div>
-                                        <p className="text-sm text-gray-600">Couleur sélectionnée</p>
-                                        <p className="font-mono font-bold text-gray-800">{accentColor}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end pt-4">
-                                <Button
-                                    onClick={handleSaveTheme}
-                                    isLoading={saving}
-                                    className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-xl font-bold"
-                                >
-                                    <Save size={20} />
-                                    Enregistrer le thème
-                                </Button>
                             </div>
                         </div>
                     )}

@@ -14,7 +14,7 @@ const nextConfig = {
             {
                 source: '/api/:path*',
                 // Use NEXT_PUBLIC_API_URL when provided (production), fall back to localhost for dev
-                destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/:path*`,
+                destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/:path*`,
             },
         ];
     },

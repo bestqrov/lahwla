@@ -1,0 +1,37 @@
+# Stage 1: Build
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies for building
+COPY package*.json ./
+COPY prisma ./prisma/
+RUN npm install
+
+# Copy source and build
+COPY . .
+RUN npx prisma generate
+RUN npm run build:backend
+
+# Stage 2: Runtime
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy built assets and production dependencies
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules ./node_modules
+
+# Ensure scripts are available
+COPY scripts ./scripts
+
+EXPOSE 3001
+
+# The backend port is fixed to 3001 as per current app config
+ENV BACKEND_PORT=3001
+ENV NODE_ENV=production
+
+# Run database push and start server
+CMD ["sh", "-c", "npx prisma db push && node dist/server.js"]

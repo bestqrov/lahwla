@@ -4,8 +4,9 @@ const nextConfig = {
     optimizeFonts: false,
     images: {
         unoptimized: true,
-        domains: ['localhost'],
+        domains: ['localhost', 'arwaeduc.enovazoneacadimeca.com'],
     },
+    output: 'standalone',
     eslint: {
         ignoreDuringBuilds: true,
     },

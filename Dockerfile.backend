@@ -3,10 +3,15 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies for building
+# Install build dependencies for native modules (if any)
+RUN apk add --no-cache python3 make g++
+
+# Copy package files for better caching
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm install
+
+# Use npm ci for reliable, faster installs
+RUN npm ci
 
 # Copy source and build
 COPY . .
@@ -18,20 +23,18 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Set production environment
+ENV NODE_ENV=production
+ENV BACKEND_PORT=3001
+
 # Copy built assets and production dependencies
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules ./node_modules
-
-# Ensure scripts are available
 COPY scripts ./scripts
 
 EXPOSE 3001
-
-# The backend port is fixed to 3001 as per current app config
-ENV BACKEND_PORT=3001
-ENV NODE_ENV=production
 
 # Run database push and start server
 CMD ["sh", "-c", "npx prisma db push && node dist/server.js"]

@@ -3,13 +3,21 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm install
 
-# Copy source and build
+# Use npm ci for faster installs
+RUN npm ci
+
+# Copy source
 COPY . .
+
+# Set build-time variables (Optional: can be passed via --build-arg)
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# Build
 RUN npm run build
 
 # Stage 2: Runtime
@@ -19,6 +27,7 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV PORT 3000
 
 # Copy standalone build and static assets
 COPY --from=builder /app/.next/standalone ./
@@ -26,7 +35,5 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
 EXPOSE 3000
-
-ENV PORT 3000
 
 CMD ["node", "server.js"]

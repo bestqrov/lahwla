@@ -84,4 +84,7 @@ app.use('/api', apiRouter);
 // ================= ERROR HANDLING =================
 app.use(errorMiddleware);
 
+return app;
+};
+
 export default createApp;

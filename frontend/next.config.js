@@ -6,9 +6,17 @@ const nextConfig = {
         unoptimized: true,
         domains: ['localhost', 'arwaeduc.enovazoneacadimeca.com'],
     },
-    output: 'export',
+    output: 'standalone',
     eslint: {
         ignoreDuringBuilds: true,
+    },
+    async rewrites() {
+        return [
+            {
+                source: '/api/:path*',
+                destination: 'http://localhost:3001/api/:path*',
+            },
+        ];
     },
 }
 

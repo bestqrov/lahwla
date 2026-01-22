@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
+import next from 'next';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { env } from './config/env';
 
@@ -22,7 +23,8 @@ import teachersRoutes from './modules/teachers/teachers.routes';
 import transactionsRoutes from './modules/transactions/transactions.routes';
 import teacherRoutes from './modules/teacher/teacher.routes';
 
-const app: Application = express();
+const createApp = (nextHandler?: any) => {
+    const app: Application = express();
 
 // Trust proxy when behind a reverse proxy (e.g., Coolify) so secure cookies and redirects work
 app.set('trust proxy', true);
@@ -51,6 +53,14 @@ app.get('/', (_req, res) => {
     });
 });
 
+// ================= NEXT.JS HANDLER =================
+// Handle all non-API routes with Next.js
+app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api') && !req.path.startsWith('/_next') && !req.path.startsWith('/health') && nextHandler) {
+        return nextHandler(req, res);
+    }
+});
+
 // ================= API ROUTES =================
 const apiRouter = express.Router();
 apiRouter.use('/auth', authRoutes);
@@ -74,4 +84,4 @@ app.use('/api', apiRouter);
 // ================= ERROR HANDLING =================
 app.use(errorMiddleware);
 
-export default app;
+export default createApp;

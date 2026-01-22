@@ -1,9 +1,20 @@
-import app from './app';
+import createApp from './app';
 import { env } from './config/env';
 import prisma from './config/database';
+import next from 'next';
+import path from 'path';
 
 const startServer = async () => {
     try {
+        // Prepare Next.js app
+        console.log('🚀 Preparing Next.js app...');
+        const nextApp = next({ dev: false, dir: path.join(__dirname, '../frontend') });
+        await nextApp.prepare();
+        const nextHandler = nextApp.getRequestHandler();
+
+        // Create Express app with Next.js handler
+        const app = createApp(nextHandler);
+
         const skipDbCheck = process.env.SKIP_DB_CHECK === 'true';
 
         // Test database connection

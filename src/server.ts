@@ -8,8 +8,14 @@ const startServer = async () => {
 
         // Test database connection
         if (!skipDbCheck) {
-            await prisma.$connect();
-            console.log('✅ Database connected successfully');
+            try {
+                await prisma.$connect();
+                console.log('✅ Database connected successfully');
+            } catch (dbError) {
+                console.error('❌ Database connection failed:', dbError);
+                console.log('⚠️ Starting server without database connection');
+                console.log('💡 Make sure DATABASE_URL is set correctly');
+            }
         } else {
             console.log('⚠️ Database connection skipped');
         }

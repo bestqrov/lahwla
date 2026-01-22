@@ -10,4 +10,4 @@ PORT=3001 npm start &
 
 # Start frontend on port 3000 using standalone server
 echo "Starting frontend..."
-cd frontend && PORT=3000 node .next/standalone/server.js
+cd frontend/.next/standalone && PORT=3000 node server.js

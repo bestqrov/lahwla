@@ -4,7 +4,6 @@ dist
 .git
 .gitignore
 *.md
-frontend
 prisma/migrations
 !prisma/schema.prisma
 npm-debug.log

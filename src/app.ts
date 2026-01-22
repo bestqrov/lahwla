@@ -71,6 +71,21 @@ apiRouter.use('/teacher', teacherRoutes);
 
 app.use('/api', apiRouter);
 
+// ================= SERVE FRONTEND =================
+const frontendPath = path.join(__dirname, '../frontend/out');
+app.use(express.static(frontendPath));
+
+// Handle SPA routing - send all non-API requests to index.html
+app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(frontendPath, 'index.html'), (err) => {
+            if (err) {
+                res.status(500).send('Error loading frontend');
+            }
+        });
+    }
+});
+
 // ================= ERROR HANDLING =================
 app.use(errorMiddleware);
 
